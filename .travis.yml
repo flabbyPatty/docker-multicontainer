@@ -1,0 +1,21 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t flabbypatty/docker-react-multicontainer -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true flabbypatty/docker-react-multicontainer npm run test
+
+after_success:
+  - docker build -t flabbypatty/multicontainer-client ./client
+  - docker build -t flabbypatty/multicontainer-nginx ./nginx
+  - docker build -t flabbypatty/multicontainer-server ./server
+  - docker build -t flabbypatty/multicontainer-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push flabbypatty/multicontainer-client
+  - docker push flabbypatty/multicontainer-nginx
+  - docker push flabbypatty/multicontainer-server
+  - docker push flabbypatty/multicontainer-worker
